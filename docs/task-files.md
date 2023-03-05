@@ -2,30 +2,29 @@
 
 <!-- code_chunk_output -->
 
-- [Automating deployments](#automating-deployments)
-  - [Parameters](#parameters)
-  - [Functions](#functions)
-    - [!CopyValue](#copyvalue)
-    - [!ReadFile](#readfile)
-    - [!Cmd](#cmd)
-    - [!MD5](#md5)
-    - [!JsonString](#jsonstring)
-    - [!Join](#join)
-    - [!Sub](#sub)
-    - [!Select](#select)
-    - [!FindInMap](#findinmap)
-    - [!Include](#include)
-  - [Task types](#task-types)
-    - [update-organization](#update-organization)
-    - [update-stacks](#update-stacks)
-    - [update-serverless.com](#update-serverlesscom)
-    - [copy-to-s3](#copy-to-s3)
-    - [update-cdk](#update-cdk)
-    - [apply-tf](#apply-tf)
-    - [register-type](#register-type)
-    - [include](#include-1)
-  - [Templating](#templating)
-    - [Example:](#example)
+- [Parameters](#-parameters-)
+- [Functions](#-functions-)
+  - [!CopyValue](#-copyvalue-)
+  - [!ReadFile](#-readfile-)
+  - [!Cmd](#-cmd-)
+  - [!MD5](#-md5-)
+  - [!JsonString](#-jsonstring-)
+  - [!Join](#-join-)
+  - [!Sub](#-sub-)
+  - [!Select](#-select-)
+  - [!FindInMap](#-findinmap-)
+  - [!Include](#-include-)
+- [Task types](#-task-types-)
+  - [update-organization](#-update-organization-)
+  - [update-stacks](#-update-stacks-)
+  - [update-serverless.com](#-update-serverlesscom-)
+  - [copy-to-s3](#-copy-to-s3-)
+  - [update-cdk](#-update-cdk-)
+  - [apply-tf](#-apply-tf-)
+  - [register-type](#-register-type-)
+  - [include](#-include--1)
+- [Templating](#-templating-)
+  - [Example:](#-example-)
 
 <!-- /code_chunk_output -->
 
@@ -441,6 +440,9 @@ CdkWorkload:
 ### apply-tf
 
 The `apply-tf` task will apply a Terraform workload defined in the directory specified by `Path`.
+
+> **Note**
+> This task currently requires Terraform to already be installed at runtime.
 
 | Attribute| Value| Remarks|
 | :---| :---| :---| 
