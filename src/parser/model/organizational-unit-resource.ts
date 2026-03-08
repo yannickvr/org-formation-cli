@@ -1,6 +1,7 @@
 import { OrgFormationError } from '../../org-formation-error';
 import { IResource, IResourceRef, TemplateRoot } from '../parser';
 import { AccountResource } from './account-resource';
+import { PolicyResource } from './policy-resource';
 import { Reference, Resource } from './resource';
 import { ServiceControlPolicyResource } from './service-control-policy-resource';
 
@@ -15,7 +16,7 @@ export class OrganizationalUnitResource extends Resource {
     public organizationalUnitName: string;
     public accounts: Reference<AccountResource>[] = [];
     public organizationalUnits: Reference<OrganizationalUnitResource>[] = [];
-    public serviceControlPolicies: Reference<ServiceControlPolicyResource>[] = [];
+    public serviceControlPolicies: Reference<ServiceControlPolicyResource | PolicyResource>[] = [];
     public parentOULogicalName: string;
     private props: IOrganizationalUnitProperties;
 
@@ -46,7 +47,8 @@ export class OrganizationalUnitResource extends Resource {
         for(const child of this.organizationalUnits) {
             child.TemplateResource.parentOULogicalName = this.logicalId;
         }
-        this.serviceControlPolicies = super.resolve(this.props.ServiceControlPolicies, this.root.organizationSection.serviceControlPolicies);
+        const allPolicies = [...this.root.organizationSection.serviceControlPolicies, ...this.root.organizationSection.policies];
+        this.serviceControlPolicies = super.resolve(this.props.ServiceControlPolicies, allPolicies);
         const referenceToSelf = this.organizationalUnits.find(x=>x.TemplateResource === this);
         if (referenceToSelf !== undefined) {
             throw new OrgFormationError(`organizational unit ${this.organizationalUnitName} has a reference to self on child OrganizationalUnits.`);

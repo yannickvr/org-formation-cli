@@ -200,6 +200,9 @@ export class DefaultTemplateWriter {
                 case OrgResourceTypes.ServiceControlPolicy:
                     foundResource = templateRoot.organizationSection.serviceControlPolicies.find(x => x.logicalId === binding.logicalId);
                     break;
+                case OrgResourceTypes.Policy:
+                    foundResource = templateRoot.organizationSection.policies.find(x => x.logicalId === binding.logicalId);
+                    break;
             }
             if (foundResource) {
                 binding.lastCommittedHash = foundResource.calculateHash();

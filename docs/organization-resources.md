@@ -7,6 +7,7 @@
     - [OrganizationRoot](#organizationroot)
     - [OrganizationalUnit](#organizationalunit)
     - [ServiceControlPolicy](#servicecontrolpolicy)
+    - [Policy](#policy)
     - [PasswordPolicy](#passwordpolicy)
 
 ## Managing your AWS Organization as code
@@ -265,6 +266,8 @@ OrganizationalUnit is an AWS Organizational Unit within your organization and ca
 
 ServiceControlPolicy is an [AWS Service Control Policy](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scp.html) that can be used to manage permissions within the accounts contained in your organization.
 
+**Note:** This resource type is maintained for backwards compatibility. For new implementations, consider using the [Policy](#policy) resource type which supports all AWS Organizations policy types.
+
 **Type** OC::ORG::ServiceControlPolicy
 
 **Properties**
@@ -302,6 +305,129 @@ ServiceControlPolicy is an [AWS Service Control Policy](https://docs.aws.amazon.
                   - eu-west-1
                   - us-east-1
                   - eu-central-1
+```
+
+
+#### Policy
+
+Policy is a generic [AWS Organizations Policy](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies.html) resource that supports all policy types available in AWS Organizations, including authorization policies (SCPs, RCPs) and management policies (Tag, Backup, AI Services Opt-Out, Chatbot, Declarative, Security Hub, Inspector, Bedrock, Upgrade Rollout, S3, and Network Security Director policies).
+
+**Type** OC::ORG::Policy
+
+**Properties**
+
+|Property |Value|Remarks|
+|:---|:---|:---|
+|PolicyName|Name of the Policy|This property is required.
+|Description|Description of the Policy|This property is optional.
+|PolicyType|Type of the Policy|This property is required. Must be one of: `SERVICE_CONTROL_POLICY`, `RESOURCE_CONTROL_POLICY`, `TAG_POLICY`, `BACKUP_POLICY`, `AISERVICES_OPT_OUT_POLICY`, `CHATBOT_POLICY`, `DECLARATIVE_POLICY_EC2`, `SECURITYHUB_POLICY`, `INSPECTOR_POLICY`, `UPGRADE_ROLLOUT_POLICY`, `BEDROCK_POLICY`, `S3_POLICY`, `NETWORK_SECURITY_DIRECTOR_POLICY`
+|PolicyDocument|Policy Document|This property is required. The structure depends on the PolicyType.
+
+**!Ref** Returns the physical id of the Policy resource.
+
+**Policy Type Details**
+
+- **SERVICE_CONTROL_POLICY**: Controls maximum available permissions for IAM principals in member accounts
+- **RESOURCE_CONTROL_POLICY**: Controls maximum available permissions for resources in member accounts
+- **TAG_POLICY**: Standardizes tags attached to AWS resources
+- **BACKUP_POLICY**: Centrally manages backup plans for AWS resources
+- **AISERVICES_OPT_OUT_POLICY**: Controls data collection for AWS AI services
+- **CHATBOT_POLICY**: Controls access from chat applications like Slack and Microsoft Teams
+- **DECLARATIVE_POLICY_EC2**: Declares and enforces desired EC2 configurations
+- **SECURITYHUB_POLICY**: Centrally manages Security Hub configurations
+- **INSPECTOR_POLICY**: Centrally enables and manages Amazon Inspector
+- **BEDROCK_POLICY**: Enforces Amazon Bedrock Guardrails for model inference calls
+- **UPGRADE_ROLLOUT_POLICY**: Manages automatic upgrades across AWS resources
+- **S3_POLICY**: Centrally manages S3 configurations
+- **NETWORK_SECURITY_DIRECTOR_POLICY**: Manages network security configurations
+
+For detailed information about each policy type, see the [AWS Organizations Policy Types documentation](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies.html).
+
+**Example - Resource Control Policy**
+
+```yaml
+  RestrictPublicS3BucketsRCP:
+    Type: OC::ORG::Policy
+    Properties:
+      PolicyName: RestrictPublicS3Buckets
+      PolicyType: RESOURCE_CONTROL_POLICY
+      Description: Prevent S3 buckets from being made public
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyPublicS3Buckets
+            Effect: Deny
+            Principal: '*'
+            Action:
+              - 's3:PutBucketPublicAccessBlock'
+            Resource: '*'
+            Condition:
+              StringNotEquals:
+                's3:ResourceAccount': '${aws:PrincipalAccount}'
+```
+
+**Example - Tag Policy**
+
+```yaml
+  RequireEnvironmentTagPolicy:
+    Type: OC::ORG::Policy
+    Properties:
+      PolicyName: RequireEnvironmentTag
+      PolicyType: TAG_POLICY
+      Description: Require Environment tag on all resources
+      PolicyDocument:
+        tags:
+          Environment:
+            tag_key:
+              @@assign: Environment
+            tag_value:
+              @@assign:
+                - Production
+                - Development
+                - Staging
+            enforced_for:
+              @@assign:
+                - 's3:bucket'
+                - 'ec2:instance'
+```
+
+**Example - Backup Policy**
+
+```yaml
+  DailyBackupPolicy:
+    Type: OC::ORG::Policy
+    Properties:
+      PolicyName: DailyBackups
+      PolicyType: BACKUP_POLICY
+      Description: Daily backup policy for critical resources
+      PolicyDocument:
+        plans:
+          DailyBackupPlan:
+            regions:
+              @@assign:
+                - us-east-1
+                - eu-west-1
+            rules:
+              DailyBackupRule:
+                schedule_expression:
+                  @@assign: 'cron(0 5 ? * * *)'
+                start_backup_window_minutes:
+                  @@assign: '60'
+                complete_backup_window_minutes:
+                  @@assign: '120'
+                lifecycle:
+                  delete_after_days:
+                    @@assign: '30'
+            selections:
+              tags:
+                BackupDaily:
+                  iam_role_arn:
+                    @@assign: 'arn:aws:iam::$account:role/BackupRole'
+                  tag_key:
+                    @@assign: 'Backup'
+                  tag_value:
+                    @@assign:
+                      - 'Daily'
 ```
 
 

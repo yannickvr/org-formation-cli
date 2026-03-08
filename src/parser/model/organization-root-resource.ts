@@ -1,4 +1,5 @@
 import { IResource, IResourceRef, TemplateRoot } from '../parser';
+import { PolicyResource } from './policy-resource';
 import { Reference, Resource } from './resource';
 import { ServiceControlPolicyResource } from './service-control-policy-resource';
 
@@ -13,7 +14,7 @@ export interface IOrganizationRootProperties {
 
 
 export class OrganizationRootResource extends Resource {
-    public serviceControlPolicies: Reference<ServiceControlPolicyResource>[] = [];
+    public serviceControlPolicies: Reference<ServiceControlPolicyResource | PolicyResource>[] = [];
     private props: IOrganizationRootProperties;
     public defaultOrganizationAccessRoleName?: string;
     public defaultBuildAccessRoleName?: string;
@@ -40,7 +41,8 @@ export class OrganizationRootResource extends Resource {
 
     public resolveRefs(): void {
         if (this.props) {
-            this.serviceControlPolicies = super.resolve(this.props.ServiceControlPolicies, this.root.organizationSection.serviceControlPolicies);
+            const allPolicies = [...this.root.organizationSection.serviceControlPolicies, ...this.root.organizationSection.policies];
+            this.serviceControlPolicies = super.resolve(this.props.ServiceControlPolicies, allPolicies);
         } else  {
             this.serviceControlPolicies = [];
         }
