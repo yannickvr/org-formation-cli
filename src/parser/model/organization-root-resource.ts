@@ -4,7 +4,8 @@ import { Reference, Resource } from './resource';
 import { ServiceControlPolicyResource } from './service-control-policy-resource';
 
 export interface IOrganizationRootProperties {
-    ServiceControlPolicies: IResourceRef | IResourceRef[];
+    ServiceControlPolicies?: IResourceRef | IResourceRef[];
+    Policies?: IResourceRef | IResourceRef[];
     DefaultOrganizationAccessRoleName?: string;
     DefaultBuildAccessRoleName?: string;
     DefaultDevelopmentBuildAccessRoleName?: string;
@@ -28,7 +29,7 @@ export class OrganizationRootResource extends Resource {
         this.props = this.resource.Properties as IOrganizationRootProperties;
 
         super.throwForUnknownAttributes(resource, id, 'Type', 'Properties');
-        super.throwForUnknownAttributes(this.props, id, 'ServiceControlPolicies', 'DefaultOrganizationAccessRoleName', 'DefaultBuildAccessRoleName', 'DefaultDevelopmentBuildAccessRoleName', 'MirrorInPartition', 'CloseAccountsOnRemoval');
+        super.throwForUnknownAttributes(this.props, id, 'ServiceControlPolicies', 'Policies', 'DefaultOrganizationAccessRoleName', 'DefaultBuildAccessRoleName', 'DefaultDevelopmentBuildAccessRoleName', 'MirrorInPartition', 'CloseAccountsOnRemoval');
 
         if (this.props) {
             this.defaultOrganizationAccessRoleName = this.props.DefaultOrganizationAccessRoleName;
@@ -42,7 +43,23 @@ export class OrganizationRootResource extends Resource {
     public resolveRefs(): void {
         if (this.props) {
             const allPolicies = [...this.root.organizationSection.serviceControlPolicies, ...this.root.organizationSection.policies];
-            this.serviceControlPolicies = super.resolve(this.props.ServiceControlPolicies, allPolicies);
+
+            // Resolve both ServiceControlPolicies and Policies properties
+            const scpRefs = super.resolve(this.props.ServiceControlPolicies, allPolicies);
+            const policyRefs = super.resolve(this.props.Policies, allPolicies);
+
+            // Merge both lists, removing duplicates
+            const mergedPolicies = [...scpRefs];
+            for (const policyRef of policyRefs) {
+                const isDuplicate = mergedPolicies.some(existing =>
+                    existing.TemplateResource?.logicalId === policyRef.TemplateResource?.logicalId ||
+                    existing.PhysicalId === policyRef.PhysicalId
+                );
+                if (!isDuplicate) {
+                    mergedPolicies.push(policyRef);
+                }
+            }
+            this.serviceControlPolicies = mergedPolicies;
         } else  {
             this.serviceControlPolicies = [];
         }

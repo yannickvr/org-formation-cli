@@ -13,6 +13,7 @@ export interface IAccountProperties {
     AccountName: string;
     AccountId?: string;
     ServiceControlPolicies?: IResourceRef | IResourceRef[];
+    Policies?: IResourceRef | IResourceRef[];
     PasswordPolicy?: IResourceRef;
     Alias?: string;
     PartitionAccountId?: string;
@@ -80,7 +81,7 @@ export class AccountResource extends Resource {
         this.organizationAccessRoleName = this.props.OrganizationAccessRoleName;
 
         super.throwForUnknownAttributes(resource, id, 'Type', 'Properties');
-        super.throwForUnknownAttributes(this.props, id, 'RootEmail', 'AccountName', 'AccountId', 'Alias', 'PartitionAlias', 'PartitionAccountId', 'ServiceControlPolicies', 'Tags', 'PasswordPolicy', 'SupportLevel', 'OrganizationAccessRoleName', 'BuildAccessRoleName');
+        super.throwForUnknownAttributes(this.props, id, 'RootEmail', 'AccountName', 'AccountId', 'Alias', 'PartitionAlias', 'PartitionAccountId', 'ServiceControlPolicies', 'Policies', 'Tags', 'PasswordPolicy', 'SupportLevel', 'OrganizationAccessRoleName', 'BuildAccessRoleName');
     }
 
     public calculateHash(): string {
@@ -96,7 +97,24 @@ export class AccountResource extends Resource {
     public resolveRefs(): void {
         if (this.props) {
             const allPolicies = [...this.root.organizationSection.serviceControlPolicies, ...this.root.organizationSection.policies];
-            this.serviceControlPolicies = super.resolve(this.props.ServiceControlPolicies, allPolicies);
+
+            // Resolve both ServiceControlPolicies and Policies properties
+            const scpRefs = super.resolve(this.props.ServiceControlPolicies, allPolicies);
+            const policyRefs = super.resolve(this.props.Policies, allPolicies);
+
+            // Merge both lists, removing duplicates
+            const mergedPolicies = [...scpRefs];
+            for (const policyRef of policyRefs) {
+                const isDuplicate = mergedPolicies.some(existing =>
+                    existing.TemplateResource?.logicalId === policyRef.TemplateResource?.logicalId ||
+                    existing.PhysicalId === policyRef.PhysicalId
+                );
+                if (!isDuplicate) {
+                    mergedPolicies.push(policyRef);
+                }
+            }
+            this.serviceControlPolicies = mergedPolicies;
+
             const passwordPolicies = super.resolve(this.props.PasswordPolicy, this.root.organizationSection.passwordPolicies);
             if (passwordPolicies.length !== 0) {
                 this.passwordPolicy = passwordPolicies[0];

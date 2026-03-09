@@ -10,6 +10,7 @@ export interface IOrganizationalUnitProperties {
     Accounts?: string[] | IResourceRef | IResourceRef[];
     OrganizationalUnits?: string[] | IResourceRef | IResourceRef[];
     ServiceControlPolicies?: IResourceRef | IResourceRef[];
+    Policies?: IResourceRef | IResourceRef[];
 }
 
 export class OrganizationalUnitResource extends Resource {
@@ -38,7 +39,7 @@ export class OrganizationalUnitResource extends Resource {
         super.throwForNonRef(this.props.OrganizationalUnits, 'OrganizationalUnits');
         super.throwForNonRef(this.props.Accounts, 'Accounts');
         super.throwForUnknownAttributes(resource, id, 'Type', 'Properties');
-        super.throwForUnknownAttributes(this.props, id, 'OrganizationalUnitName', 'Accounts', 'ServiceControlPolicies', 'OrganizationalUnits');
+        super.throwForUnknownAttributes(this.props, id, 'OrganizationalUnitName', 'Accounts', 'ServiceControlPolicies', 'Policies', 'OrganizationalUnits');
     }
 
     public resolveRefs(): void {
@@ -48,7 +49,23 @@ export class OrganizationalUnitResource extends Resource {
             child.TemplateResource.parentOULogicalName = this.logicalId;
         }
         const allPolicies = [...this.root.organizationSection.serviceControlPolicies, ...this.root.organizationSection.policies];
-        this.serviceControlPolicies = super.resolve(this.props.ServiceControlPolicies, allPolicies);
+
+        // Resolve both ServiceControlPolicies and Policies properties
+        const scpRefs = super.resolve(this.props.ServiceControlPolicies, allPolicies);
+        const policyRefs = super.resolve(this.props.Policies, allPolicies);
+
+        // Merge both lists, removing duplicates
+        this.serviceControlPolicies = [...scpRefs];
+        for (const policyRef of policyRefs) {
+            const isDuplicate = this.serviceControlPolicies.some(existing =>
+                existing.TemplateResource?.logicalId === policyRef.TemplateResource?.logicalId ||
+                existing.PhysicalId === policyRef.PhysicalId
+            );
+            if (!isDuplicate) {
+                this.serviceControlPolicies.push(policyRef);
+            }
+        }
+
         const referenceToSelf = this.organizationalUnits.find(x=>x.TemplateResource === this);
         if (referenceToSelf !== undefined) {
             throw new OrgFormationError(`organizational unit ${this.organizationalUnitName} has a reference to self on child OrganizationalUnits.`);
