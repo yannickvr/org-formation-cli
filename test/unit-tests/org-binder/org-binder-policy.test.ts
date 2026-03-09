@@ -42,7 +42,7 @@ Organization:
         expect(bindings.policies).toBeDefined();
         expect(bindings.policies.length).toBe(1);
         expect(bindings.policies[0].template.policyName).toBe('TestPolicy');
-        expect(bindings.policies[0].template.policyType).toBe('RESOURCE_CONTROL_POLICY');
+        expect((bindings.policies[0].template as any).policyType).toBe('RESOURCE_CONTROL_POLICY');
         expect(bindings.policies[0].action).toBe('Create');
     });
 

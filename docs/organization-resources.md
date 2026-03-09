@@ -379,14 +379,14 @@ For detailed information about each policy type, see the [AWS Organizations Poli
         tags:
           Environment:
             tag_key:
-              @@assign: Environment
+              '@@assign': Environment
             tag_value:
-              @@assign:
+              '@@assign':
                 - Production
                 - Development
                 - Staging
             enforced_for:
-              @@assign:
+              '@@assign':
                 - 's3:bucket'
                 - 'ec2:instance'
 ```
@@ -404,29 +404,29 @@ For detailed information about each policy type, see the [AWS Organizations Poli
         plans:
           DailyBackupPlan:
             regions:
-              @@assign:
+              '@@assign':
                 - us-east-1
                 - eu-west-1
             rules:
               DailyBackupRule:
                 schedule_expression:
-                  @@assign: 'cron(0 5 ? * * *)'
+                  '@@assign': 'cron(0 5 ? * * *)'
                 start_backup_window_minutes:
-                  @@assign: '60'
+                  '@@assign': '60'
                 complete_backup_window_minutes:
-                  @@assign: '120'
+                  '@@assign': '120'
                 lifecycle:
                   delete_after_days:
-                    @@assign: '30'
+                    '@@assign': '30'
             selections:
               tags:
                 BackupDaily:
                   iam_role_arn:
-                    @@assign: 'arn:aws:iam::$account:role/BackupRole'
+                    '@@assign': 'arn:aws:iam::$account:role/BackupRole'
                   tag_key:
-                    @@assign: 'Backup'
+                    '@@assign': 'Backup'
                   tag_value:
-                    @@assign:
+                    '@@assign':
                       - 'Daily'
 ```
 

@@ -326,6 +326,14 @@ describe('when creating attach/detach tasks for Policy resources', () => {
     });
 
     test('attach task uses attachGenericPolicy for Policy resource', async () => {
+        // Set up MasterAccount binding
+        state.setBinding({
+            type: OrgResourceTypes.MasterAccount,
+            logicalId: 'MasterAccount',
+            physicalId: '123456789012',
+            lastCommittedHash: 'hash000',
+        });
+
         template = TemplateRoot.createFromContents(`
 Organization:
   MasterAccount:
@@ -348,7 +356,7 @@ Organization:
 
         const taskProvider = new TaskProvider(template, state, writer);
         const masterAccount = template.organizationSection.masterAccount;
-        const tasks = taskProvider.createAccountUpdateTasks(masterAccount!, state.getBinding(OrgResourceTypes.MasterAccount, 'MasterAccount'), 'hash456');
+        const tasks = taskProvider.createAccountUpdateTasks(masterAccount!, state.getBinding(OrgResourceTypes.MasterAccount, 'MasterAccount'), 'hash456', false);
 
         // Find attach policy task
         const attachTask = tasks.find(t => t.action.startsWith('Attach Policy'));
@@ -364,6 +372,14 @@ Organization:
     });
 
     test('attach task uses attachPolicy for ServiceControlPolicy resource', async () => {
+        // Set up MasterAccount binding
+        state.setBinding({
+            type: OrgResourceTypes.MasterAccount,
+            logicalId: 'MasterAccount',
+            physicalId: '123456789012',
+            lastCommittedHash: 'hash000',
+        });
+
         state.setBinding({
             type: OrgResourceTypes.ServiceControlPolicy,
             logicalId: 'LegacySCP',
@@ -392,7 +408,7 @@ Organization:
 
         const taskProvider = new TaskProvider(template, state, writer);
         const masterAccount = template.organizationSection.masterAccount;
-        const tasks = taskProvider.createAccountUpdateTasks(masterAccount!, state.getBinding(OrgResourceTypes.MasterAccount, 'MasterAccount'), 'hash456');
+        const tasks = taskProvider.createAccountUpdateTasks(masterAccount!, state.getBinding(OrgResourceTypes.MasterAccount, 'MasterAccount'), 'hash456', false);
 
         // Find attach policy task
         const attachTask = tasks.find(t => t.action.startsWith('Attach Policy'));

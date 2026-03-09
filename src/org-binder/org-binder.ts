@@ -39,7 +39,7 @@ export class OrganizationBinder {
     public getOrganizationBinding(): OrganizationBinding {
         const policies = [
             ...Array.from(ServiceControlPolicyBinding.enumerateServiceControlBindings(this.template, this.state)),
-            ...Array.from(PolicyBinding.enumeratePolicyBindings(this.template, this.state))
+            ...Array.from(PolicyBinding.enumeratePolicyBindings(this.template, this.state)),
         ];
         const organizationalUnits = Array.from(OrganizationalUnitBinding.enumerateOrganizationalUnitBindings(this.template, this.state));
         const accounts = Array.from(AccountBinding.enumerateAccountBindings(this.template, this.state));

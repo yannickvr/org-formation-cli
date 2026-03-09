@@ -82,7 +82,7 @@ Organization:
         tags:
           Environment:
             tag_key:
-              @@assign: Environment
+              '@@assign': Environment
 `, './');
 
         expect(template.organizationSection.policies.length).toBe(3);
@@ -246,8 +246,8 @@ Organization:
         const ou = template.organizationSection.organizationalUnits[0];
         expect(ou.serviceControlPolicies).toBeDefined();
         expect(ou.serviceControlPolicies.length).toBe(2);
-        expect(ou.serviceControlPolicies[0].TemplateResource.policyType).toBe('TAG_POLICY');
-        expect(ou.serviceControlPolicies[1].TemplateResource.policyType).toBe('BACKUP_POLICY');
+        expect((ou.serviceControlPolicies[0].TemplateResource as any).policyType).toBe('TAG_POLICY');
+        expect((ou.serviceControlPolicies[1].TemplateResource as any).policyType).toBe('BACKUP_POLICY');
     });
 
     test('can attach mixed ServiceControlPolicy and Policy to OrganizationRoot', async () => {
